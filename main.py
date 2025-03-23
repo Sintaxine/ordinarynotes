@@ -1,80 +1,46 @@
 import os
+from functions import Functions
 
-def getFileName() -> str:
-    name = input("Enter note name: ")
-    while len(name) < 1:
-        name = input("Enter note name (cannot be empty): ")  
-    return name  
+def create_and_write_note(check_if_exists: bool, note_name: str):
 
-def createFile(file_name: str):
-    if not os.path.exists(file_name):
-        with open(file_name, 'w') as file:  
-            file.write("")
-    else:
-        print(f"The file '{file_name}' already exists.")
+    if check_if_exists:
+        Functions.create_file(note_name) 
 
-def writeNote(file_name: str, content: str):
-    with open(file_name, 'w') as file:
-        file.write(content) 
+    note = input("Enter the content for the note: ")
+    Functions.write_note(note_name, note) 
 
-def appendNote(file_name: str, content: str):
-    with open(file_name, 'a') as file:
-        file.write(content)
+    print(f"Done! Note saved as {note_name}")
 
-def editFile(file_name: str):
+def get_user_choice(prompt: str, valid_choices: set) -> str:
 
-    with open(file_name, 'r') as file:
-        content = file.read()
-    print(f"Current content of the file:\n{content}\n")
+    while True:
 
-    choice = input("Do you want to (E)dit, (A)ppend, or (O)verwrite the file? (E/A/O): ").lower()
-    if choice == 'e':
-        print("You can now edit the file. Type 'done' on a new line to finish.")
-        edited_content = ""
-        while True:
-            line = input()
-            if line.lower() == 'done':
-                break
-            edited_content += line + '\n'
-        writeNote(file_name, edited_content)  
-    elif choice == 'a':
-        print("You can now append to the file. Type 'done' on a new line to finish.")
-        append_content = ""
-        while True:
-            line = input()
-            if line.lower() == 'done':
-                break
-            append_content += line + '\n'
-        appendNote(file_name, append_content)  
-    elif choice == 'o':
-        print("You can now overwrite the file. Type 'done' on a new line to finish.")
-        overwrite_content = ""
-        while True:
-            line = input()
-            if line.lower() == 'done':
-                break
-            overwrite_content += line + '\n'
-        writeNote(file_name, overwrite_content)  
-    else:
-        print("Invalid choice. Please select 'E', 'A', or 'O'.")
+        choice = input(prompt).strip().lower()
+
+        if choice in valid_choices:
+            return choice
+        
+        print("Invalid choice. Please enter a valid option.")
 
 def main():
-    note_name = getFileName() 
-    if os.path.exists(note_name):  
-        edit_choice = input(f"The file '{note_name}' already exists. Do you want to (E)dit it or create a new one? (E/N): ").lower()
-        if edit_choice == 'e':
-            editFile(note_name)
-        else:
-            print("Creating a new file.")
-            createFile(note_name)  
-            note = input("Enter the content for the note: ")
-            writeNote(note_name, note) 
-            print(f"Done! Note saved as {note_name}")
-    else:
-        createFile(note_name)  
-        note = input("Enter the content for the note: ")
-        writeNote(note_name, note) 
-        print(f"Done! Note saved as {note_name}")
+
+    note_name = Functions.get_file_name()
+
+    if Functions.file_exists(note_name):
+        edit_choice = get_user_choice(
+            f"The file '{note_name}' already exists. Do you want to edit it or create a new one? (E/N): ",
+            {"e", "n"}
+        )
+        if edit_choice == "e":
+            Functions.edit_file(note_name)
+            return
+        
+        print("Creating a new file.")
+        create_and_write_note(False, note_name)
+
+        return
+    
+    create_and_write_note(True, note_name)
 
 if __name__ == "__main__":
-    main()  
+    main()
